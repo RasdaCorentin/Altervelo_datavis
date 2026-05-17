@@ -31,6 +31,7 @@ from features import (
 DB_PATH = DASHBOARD_DIR / "velos.db"
 STATIONS_CSV = PROJECT_ROOT / "data" / "stations_clean.csv"
 ENRICHED_CSV = PROJECT_ROOT / "data" / "stations_enriched.csv"
+FLOW_CSV     = PROJECT_ROOT / "data" / "vehicle_flow.csv"
 
 def model_path(h_min: int) -> Path:
     return PROJECT_ROOT / f"xgb_velos_v4_h{h_min}min.json"
@@ -66,6 +67,14 @@ CREATE TABLE observations (
     n_transit_450_600m INTEGER, n_transit_600_750m INTEGER, n_transit_750_900m INTEGER,
     dist_nearest_transit_m REAL,
     is_obs_missing INTEGER,
+    n_arrivees_0_150m_30min REAL, n_departs_0_150m_30min REAL, net_flow_0_150m_30min REAL,
+    n_arrivees_0_150m_60min REAL, n_departs_0_150m_60min REAL, net_flow_0_150m_60min REAL,
+    n_arrivees_0_150m_120min REAL, n_departs_0_150m_120min REAL, net_flow_0_150m_120min REAL,
+    n_arrivees_150_300m_30min REAL, n_departs_150_300m_30min REAL, net_flow_150_300m_30min REAL,
+    n_arrivees_150_300m_60min REAL, n_departs_150_300m_60min REAL, net_flow_150_300m_60min REAL,
+    n_arrivees_150_300m_120min REAL, n_departs_150_300m_120min REAL, net_flow_150_300m_120min REAL,
+    n_arrivees_300_450m_60min REAL, n_departs_300_450m_60min REAL,
+    n_arrivees_450_600m_60min REAL, n_departs_450_600m_60min REAL,
     source TEXT NOT NULL DEFAULT 'historical',
     PRIMARY KEY (timestamp, station_index)
 );
@@ -106,12 +115,33 @@ OBS_COLS = [
     "n_transit_0_150m", "n_transit_150_300m", "n_transit_300_450m",
     "n_transit_450_600m", "n_transit_600_750m", "n_transit_750_900m",
     "dist_nearest_transit_m", "is_obs_missing",
+    "n_arrivees_0_150m_30min", "n_departs_0_150m_30min", "net_flow_0_150m_30min",
+    "n_arrivees_0_150m_60min", "n_departs_0_150m_60min", "net_flow_0_150m_60min",
+    "n_arrivees_0_150m_120min", "n_departs_0_150m_120min", "net_flow_0_150m_120min",
+    "n_arrivees_150_300m_30min", "n_departs_150_300m_30min", "net_flow_150_300m_30min",
+    "n_arrivees_150_300m_60min", "n_departs_150_300m_60min", "net_flow_150_300m_60min",
+    "n_arrivees_150_300m_120min", "n_departs_150_300m_120min", "net_flow_150_300m_120min",
+    "n_arrivees_300_450m_60min", "n_departs_300_450m_60min",
+    "n_arrivees_450_600m_60min", "n_departs_450_600m_60min",
 ]
 
 
 def init_schema(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA)
     conn.commit()
+
+
+def load_enriched(parse_dates: bool = True) -> pd.DataFrame:
+    """Charge stations_enriched.csv et merge vehicle_flow.csv si disponible."""
+    df = pd.read_csv(ENRICHED_CSV, parse_dates=["timestamp"] if parse_dates else False)
+    if FLOW_CSV.exists():
+        flow = pd.read_csv(FLOW_CSV, parse_dates=["timestamp"] if parse_dates else False)
+        before = df.shape[1]
+        df = df.merge(flow, on=["timestamp", "station_index"], how="left")
+        print(f"   vehicle_flow.csv mergé : +{df.shape[1] - before} colonnes flux")
+    else:
+        print(f"   ⚠  {FLOW_CSV.name} absent — colonnes flux seront NULL")
+    return df
 
 
 def load_stations(conn: sqlite3.Connection) -> int:
@@ -124,9 +154,14 @@ def load_stations(conn: sqlite3.Connection) -> int:
 
 
 def load_observations(conn: sqlite3.Connection) -> int:
-    df = pd.read_csv(ENRICHED_CSV, parse_dates=["timestamp"])
+    df = load_enriched()
+    # Colonnes flux absentes (si vehicle_flow.csv manquant) → NULL
+    for c in OBS_COLS:
+        if c not in df.columns:
+            df[c] = np.nan
     obs = df[OBS_COLS].copy()
-    obs["timestamp"] = obs["timestamp"].dt.strftime(TS_FMT)
+    # Normalise en UTC pour aligner avec les données live (merge.py stocke en UTC)
+    obs["timestamp"] = obs["timestamp"].dt.tz_convert("UTC").dt.strftime(TS_FMT)
     obs["source"] = "historical"
     obs.to_sql("observations", conn, if_exists="append", index=False, chunksize=5000)
     return len(obs)
@@ -138,7 +173,7 @@ def temporal_split(df: pd.DataFrame, ratio: float = TEST_RATIO) -> pd.DataFrame:
 
 
 def backtest_predictions(conn: sqlite3.Connection) -> int:
-    df = pd.read_csv(ENRICHED_CSV, parse_dates=["timestamp"])
+    df = load_enriched()
     df = df.sort_values(["station_index", "timestamp"]).reset_index(drop=True)
 
     total = 0
@@ -162,7 +197,7 @@ def backtest_predictions(conn: sqlite3.Connection) -> int:
         X_ordered = X[model.feature_names]
         delta_pred = model.predict(xgb.DMatrix(X_ordered, enable_categorical=True))
 
-        ts_pred = test["timestamp"]
+        ts_pred = test["timestamp"].dt.tz_convert("UTC")
         ts_target = ts_pred + pd.Timedelta(minutes=h_min)
         y_current = test["current_value"].astype(float).values
         y_pred = np.clip(y_current + delta_pred, 0, None)

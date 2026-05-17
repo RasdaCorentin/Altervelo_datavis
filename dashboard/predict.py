@@ -41,7 +41,8 @@ def predict_latest(conn) -> dict[int, int]:
         FROM observations o
         JOIN stations s USING (station_index)
         ORDER BY station_index, timestamp
-    """, conn, parse_dates=["timestamp"])
+    """, conn)
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
     if "source" in df.columns:
         df = df.drop(columns=["source"])
 

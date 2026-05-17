@@ -15,7 +15,7 @@ DIFF_LAGS = [1, 4, 48]
 TARGET_COL = "num_vehicles_available"
 
 # Doit rester strictement aligné avec script/train_xgboostplus_delta.py.
-LAG_MODE = "cyclic_only"  # "full" | "cyclic_only"
+LAG_MODE = "full"  # "full" | "cyclic_only"
 CYCLIC_DROP_FEATURES = {
     "current_value",
     "lag_1", "lag_2", "lag_4", "lag_6",
@@ -60,6 +60,17 @@ def build_features(df: pd.DataFrame, horizon_steps: int | None = None) -> pd.Dat
     df["current_value"] = df[TARGET_COL]
     for d in DIFF_LAGS:
         df[f"diff_{d}"] = df[TARGET_COL] - g.shift(d)
+
+    # flow_density : arrivées/départs 60min normalisés par densité locale
+    local_density_cols = [c for c in ["n_transit_0_150m", "n_transit_150_300m"] if c in df.columns]
+    if local_density_cols:
+        local_density = df[local_density_cols].sum(axis=1)
+        arr_60 = [c for c in df.columns if c.startswith("n_arrivees_") and c.endswith("_60min")]
+        dep_60 = [c for c in df.columns if c.startswith("n_departs_") and c.endswith("_60min")]
+        if arr_60:
+            df["flow_density_arrivees_60min"] = df[arr_60].sum(axis=1) / (1.0 + local_density)
+        if dep_60:
+            df["flow_density_departs_60min"] = df[dep_60].sum(axis=1) / (1.0 + local_density)
 
     # station_index doit être catégoriel (aligné avec l'entraînement v4).
     df["station_index"] = df["station_index"].astype("category")
