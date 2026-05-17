@@ -1,0 +1,59 @@
+This is BibTeX, Version 0.99e (TeX Live 2026/Arch Linux)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main_altervelo.aux
+The style file: unsrt.bst
+Database file #1: source.bib
+Warning--entry type for "altervelo" isn't style-file defined
+--line 1 of file source.bib
+Warning--entry type for "python_2024" isn't style-file defined
+--line 39 of file source.bib
+Warning--entry type for "pandas_2024" isn't style-file defined
+--line 46 of file source.bib
+Warning--entry type for "numpy_2024" isn't style-file defined
+--line 53 of file source.bib
+Warning--entry type for "matplotlib_2024" isn't style-file defined
+--line 60 of file source.bib
+Warning--entry type for "scikit_2024" isn't style-file defined
+--line 67 of file source.bib
+You've used 8 entries,
+            1791 wiz_defined-function locations,
+            476 strings with 4500 characters,
+and the built_in function-call counts, 1120 in all, are:
+= -- 98
+> -- 18
+< -- 1
++ -- 11
+- -- 3
+* -- 27
+:= -- 133
+add.period$ -- 19
+call.type$ -- 8
+change.case$ -- 9
+chr.to.int$ -- 0
+cite$ -- 8
+duplicate$ -- 57
+empty$ -- 159
+format.name$ -- 3
+if$ -- 281
+int.to.chr$ -- 0
+int.to.str$ -- 8
+missing$ -- 1
+newline$ -- 38
+num.names$ -- 2
+pop$ -- 55
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 42
+stack$ -- 0
+substring$ -- 32
+swap$ -- 17
+text.length$ -- 1
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 0
+while$ -- 5
+width$ -- 9
+write$ -- 74
+(There were 6 warnings)

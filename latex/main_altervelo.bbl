@@ -1,0 +1,40 @@
+\begin{thebibliography}{1}
+
+\bibitem{python_2024}
+{Python: Programming Language}, 2024.
+\newblock Available at \url{https://www.python.org/}.
+
+\bibitem{pandas_2024}
+{Pandas: Python Data Analysis Library}, 2024.
+\newblock Available at \url{https://pandas.pydata.org}.
+
+\bibitem{numpy_2024}
+{NumPy: Numerical Computing in Python}, 2024.
+\newblock Available at \url{https://numpy.org/}.
+
+\bibitem{chen_xgboost_2016}
+Tianqi Chen and Carlos Guestrin.
+\newblock {XGBoost: A Scalable Tree Boosting System}.
+\newblock In {\em Proceedings of the 22nd ACM SIGKDD International Conference
+  on Knowledge Discovery and Data Mining}, pages 785--794, 2016.
+
+\bibitem{scikit_2024}
+{scikit-learn: Machine Learning in Python}, 2024.
+\newblock Available at \url{https://scikit-learn.org/}.
+
+\bibitem{matplotlib_2024}
+{Matplotlib: Visualization with Python}, 2024.
+\newblock Available at \url{https://matplotlib.org/}.
+
+\bibitem{altervelo}
+{Altervélo -- Service de vélos en libre service du Sud de La Réunion}, 2026.
+\newblock Available at \url{https://www.altervelo.re/}.
+
+\bibitem{gbfs_spec}
+{MobilityData}.
+\newblock {General Bikeshare Feed Specification (GBFS)}.
+\newblock Technical report, MobilityData / North American Bikeshare
+  Association, 2024.
+\newblock Available at \url{https://gbfs.org/specification/reference/}.
+
+\end{thebibliography}

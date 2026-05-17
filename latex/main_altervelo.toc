@@ -1,0 +1,21 @@
+\babel@toc {french}{}\relax 
+\contentsline {section}{\numberline {}Remerciements}{3}{Doc-Start}%
+\contentsline {section}{\numberline {}Résumé}{4}{Doc-Start}%
+\contentsline {section}{\numberline {1}Introduction}{5}{section.1}%
+\contentsline {section}{\numberline {2}Le jeu de données}{7}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Collecte}{7}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Analyse exploratoire et nettoyage des données}{8}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Pipeline vers l'entraînement}{11}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Entraînement}{14}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Objectif: battre la baseline persistance}{14}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Échec: training naïf}{15}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Réussite mineure: training par feature}{16}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Poursuite}{16}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Dashboard}{18}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Objectif fonctionnel}{18}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Architecture technique}{18}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Maquettes et écrans}{19}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Limites actuelles et évolutions}{21}{subsection.4.4}%
+\contentsline {section}{\numberline {5}Conclusion}{22}{section.5}%
+\contentsline {section}{\numberline {6}Bibliographie}{23}{section.6}%
+\providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 
