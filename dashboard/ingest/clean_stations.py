@@ -121,10 +121,24 @@ def clean(conn) -> int:
     return len(rows)
 
 
+def upsert_stations(conn) -> None:
+    """Synchronise la table stations (métadonnées) depuis l'API GBFS."""
+    info = fetch_station_info()
+    conn.executemany(
+        "INSERT OR IGNORE INTO stations (station_index, station_name, lat, lon, capacity) "
+        "VALUES (?, ?, ?, ?, ?)",
+        [(int(r.station_index), r.station_name,
+          float(r.lat) if pd.notna(r.lat) else None,
+          float(r.lon) if pd.notna(r.lon) else None,
+          int(r.capacity)) for r in info.itertuples()],
+    )
+
+
 def main():
     with pipeline_step("clean_stations"):
         conn = connect()
         try:
+            upsert_stations(conn)
             n = clean(conn)
             conn.commit()
         finally:

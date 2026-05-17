@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Crée les tables d'ingestion (raw_* + clean_*) dans velos.db.
+"""Crée toutes les tables SQLite nécessaires au dashboard (idempotent).
 
-Idempotent : `CREATE TABLE IF NOT EXISTS`. À lancer une fois avant le premier tick.
-Les tables existantes du dashboard (stations, observations, predictions, pipeline_runs)
-sont laissées intactes — elles sont créées par db_init.py.
+Couvre les tables d'ingestion (raw_* + clean_*) ET les tables dashboard
+(stations, observations avec flux véhicules, predictions, pipeline_runs).
+Sûr de relancer plusieurs fois : CREATE TABLE IF NOT EXISTS partout.
 """
 from __future__ import annotations
 
@@ -75,6 +75,66 @@ CREATE TABLE IF NOT EXISTS vehicles_clean (
     PRIMARY KEY (timestamp, vehicle_id)
 );
 CREATE INDEX IF NOT EXISTS idx_vc_ts ON vehicles_clean(timestamp);
+
+CREATE TABLE IF NOT EXISTS stations (
+    station_index INTEGER PRIMARY KEY,
+    station_name  TEXT NOT NULL,
+    lat REAL, lon REAL,
+    capacity INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS observations (
+    timestamp TEXT NOT NULL,
+    station_index INTEGER NOT NULL,
+    num_vehicles_available INTEGER,
+    num_docks_available INTEGER,
+    num_docks_disabled INTEGER,
+    num_vehicles_disabled INTEGER,
+    is_imputed INTEGER,
+    n_vehicles_actifs INTEGER,
+    n_vehicles_disabled_obs INTEGER,
+    mean_battery REAL, min_battery REAL, max_battery REAL, pct_low_battery REAL,
+    n_transit_0_150m INTEGER, n_transit_150_300m INTEGER, n_transit_300_450m INTEGER,
+    n_transit_450_600m INTEGER, n_transit_600_750m INTEGER, n_transit_750_900m INTEGER,
+    dist_nearest_transit_m REAL,
+    is_obs_missing INTEGER,
+    n_arrivees_0_150m_30min REAL, n_departs_0_150m_30min REAL, net_flow_0_150m_30min REAL,
+    n_arrivees_0_150m_60min REAL, n_departs_0_150m_60min REAL, net_flow_0_150m_60min REAL,
+    n_arrivees_0_150m_120min REAL, n_departs_0_150m_120min REAL, net_flow_0_150m_120min REAL,
+    n_arrivees_150_300m_30min REAL, n_departs_150_300m_30min REAL, net_flow_150_300m_30min REAL,
+    n_arrivees_150_300m_60min REAL, n_departs_150_300m_60min REAL, net_flow_150_300m_60min REAL,
+    n_arrivees_150_300m_120min REAL, n_departs_150_300m_120min REAL, net_flow_150_300m_120min REAL,
+    n_arrivees_300_450m_60min REAL, n_departs_300_450m_60min REAL,
+    n_arrivees_450_600m_60min REAL, n_departs_450_600m_60min REAL,
+    source TEXT NOT NULL DEFAULT 'live',
+    PRIMARY KEY (timestamp, station_index)
+);
+CREATE INDEX IF NOT EXISTS idx_obs_ts ON observations(timestamp);
+
+CREATE TABLE IF NOT EXISTS predictions (
+    ts_pred TEXT NOT NULL,
+    ts_target TEXT NOT NULL,
+    horizon_min INTEGER NOT NULL,
+    station_index INTEGER NOT NULL,
+    y_pred REAL NOT NULL,
+    y_current REAL NOT NULL,
+    y_obs REAL,
+    err_model REAL,
+    err_pers REAL,
+    source TEXT NOT NULL DEFAULT 'live',
+    PRIMARY KEY (ts_pred, horizon_min, station_index)
+);
+CREATE INDEX IF NOT EXISTS idx_pred_target ON predictions(ts_target, station_index);
+CREATE INDEX IF NOT EXISTS idx_pred_horizon ON predictions(horizon_min);
+
+CREATE TABLE IF NOT EXISTS pipeline_runs (
+    ts_run TEXT PRIMARY KEY,
+    duration_ms INTEGER,
+    n_obs_inserted INTEGER,
+    n_pred_inserted INTEGER,
+    status TEXT,
+    error_msg TEXT
+);
 """
 
 
