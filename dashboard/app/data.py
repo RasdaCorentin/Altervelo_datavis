@@ -210,3 +210,23 @@ def get_pipeline_health() -> dict:
         n_obs=n_obs, n_obs_live=n_obs_live,
         n_pred_live=n_pred_live, n_pred_back=n_pred_back,
     )
+
+
+@st.cache_data(ttl=300)
+def get_training_export() -> pd.DataFrame:
+    """Export complet observations JOIN stations — CSV prêt pour ré-entraîner le modèle."""
+    with _conn() as c:
+        return pd.read_sql("""
+            SELECT o.timestamp, o.station_index,
+                   s.station_name, s.lat, s.lon, s.capacity,
+                   o.num_vehicles_available, o.num_docks_available,
+                   o.num_docks_disabled, o.num_vehicles_disabled,
+                   o.is_imputed, o.n_vehicles_actifs, o.n_vehicles_disabled_obs,
+                   o.mean_battery, o.min_battery, o.max_battery, o.pct_low_battery,
+                   o.n_transit_0_150m, o.n_transit_150_300m, o.n_transit_300_450m,
+                   o.n_transit_450_600m, o.n_transit_600_750m, o.n_transit_750_900m,
+                   o.dist_nearest_transit_m, o.is_obs_missing, o.source
+            FROM observations o
+            JOIN stations s USING (station_index)
+            ORDER BY o.timestamp, o.station_index
+        """, c)
