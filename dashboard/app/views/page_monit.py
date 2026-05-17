@@ -7,6 +7,7 @@ import streamlit as st
 from data import (
     get_mae_timeseries, get_monitoring_global, get_monitoring_rounded,
     get_monitoring_per_station, get_pipeline_health, get_prediction_traces,
+    get_training_export,
 )
 from components import (
     color_mae, render_station_map, section_header,
@@ -16,6 +17,9 @@ from glossary import help_badge
 
 
 def render() -> None:
+    if "export_df" not in st.session_state:
+        st.session_state.export_df = None
+
     section_header(
         "Monitoring du modèle",
         "Qualité du modèle XGBoost v3 mesurée sur backtest + live (delayed feedback).",
@@ -212,4 +216,27 @@ def render() -> None:
                 "Sur des séries quasi-stationnaires (vélos peu utilisés sur de longues plages), "
                 "« ne rien prédire » est une baseline très forte. Le modèle XGBoost ne reprend "
                 "l'avantage que sur les hubs (Port, Casabona) où les flux dominent."
+            )
+
+    st.write("")
+    with st.expander("Export CSV d'entraînement", expanded=False):
+        st.caption(
+            "Exporte toutes les observations DB (historique + live) jointes aux métadonnées "
+            "station — CSV prêt pour `train_xgboostplus_delta.py`."
+        )
+        if st.button("Préparer l'export", key="btn_export_training"):
+            with st.spinner("Extraction en cours..."):
+                st.session_state.export_df = get_training_export()
+        if st.session_state.export_df is not None:
+            df_exp = st.session_state.export_df
+            st.success(
+                f"{len(df_exp):,} lignes · {df_exp['station_index'].nunique()} stations · "
+                f"{str(df_exp['timestamp'].min())[:10]} → {str(df_exp['timestamp'].max())[:10]}"
+            )
+            st.download_button(
+                "⬇ Télécharger observations_export.csv",
+                data=df_exp.to_csv(index=False).encode("utf-8"),
+                file_name="observations_export.csv",
+                mime="text/csv",
+                key="dl_training_csv",
             )
